@@ -1,0 +1,11 @@
+*
+!*/
+!/.gitignore
+!/LICENSE
+!/package.json
+!/package-lock.json
+!/.eslintrc.json
+!/tsconfig.json
+!/.github/workflows/*.yml
+!/src/**/*.ts
+!/test/**/*.ts

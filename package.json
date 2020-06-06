@@ -1,0 +1,35 @@
+{
+  "name": "treediff",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "compile": "$(npm bin)/tsc -p ./",
+    "doc": "$(npm bin)/typedoc --out doc ./src/",
+    "check-format": "$(npm bin)/eslint $(find ./src -name '*.ts') $(find ./test -name '*.ts')",
+    "lint": "$(npm bin)/eslint --fix $(find ./src -name '*.ts') $(find ./test -name '*.ts')",
+    "watch": "$(npm bin)/concurrently --kill-others --allow-restart --restart-after 500 -r \"$(npm bin)/tsc -w -p ./\"",
+    "test": "$(npm bin)/mocha $(find ./out/test -name '*.js')"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HiroakiMikami/treediff.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/HiroakiMikami/treediff/issues"
+  },
+  "homepage": "https://github.com/HiroakiMikami/treediff#readme",
+  "devDependencies": {
+    "@types/chai": "^4.2.11",
+    "@types/mocha": "^7.0.2",
+    "@typescript-eslint/eslint-plugin": "^3.1.0",
+    "@typescript-eslint/parser": "^3.1.0",
+    "chai": "^4.2.0",
+    "eslint": "^7.2.0",
+    "mocha": "^7.2.0",
+    "typedoc": "^0.17.7",
+    "typescript": "^3.9.5"
+  }
+}
