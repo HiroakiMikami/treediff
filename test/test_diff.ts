@@ -99,4 +99,44 @@ describe('#applyDiff', () => {
             }
         )
     })
+    it("insert multiple trees", () => {
+        const tree: Tree<string> = {
+            value: "parent",
+            children: [
+                { value: "leaf", children: [] },
+            ]
+        }
+        applyDiff(tree, [
+            new Delta<string>([1], new TreeWithHole({ value: "test1", children: [] }, null)),
+            new Delta<string>([2], new TreeWithHole({ value: "test2", children: [] }, null))
+        ]).should.deep.equal(
+            {
+                value: "parent",
+                children: [
+                    { value: "leaf", children: [] },
+                    { value: "test1", children: [] },
+                    { value: "test2", children: [] },
+                ]
+            }
+        )
+    })
+    it("insert and delete same path", () => {
+        const tree: Tree<string> = {
+            value: "parent",
+            children: [
+                { value: "leaf", children: [] },
+            ]
+        }
+        applyDiff(tree, [
+            new Delta<string>([0], new TreeWithHole({ value: "test", children: [] }, null)),
+            new Delta<string>([0], new TreeWithHole(null, null)),
+        ]).should.deep.equal(
+            {
+                value: "parent",
+                children: [
+                    { value: "test", children: [] },
+                ]
+            }
+        )
+    })
 })

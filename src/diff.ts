@@ -30,22 +30,28 @@ export class Delta<V> {
 export type Diff<V> = ReadonlyArray<Delta<V>>
 
 
-function comparePath(a: ReadonlyArray<number>, b: ReadonlyArray<number>, n: number): number {
-    if (a.length < b.length) {
+function compareDelta<V>(a: Delta<V>, b: Delta<V>, n: number): number {
+    if (a.path.length < b.path.length) {
         return 1
-    } else if (a.length > b.length) {
+    } else if (a.path.length > b.path.length) {
         return -1;
     }
 
-    if (a[n] < b[n]) {
+    if (a.path[n] < b.path[n]) {
         return 1
-    } else if (a[n] > b[n]) {
+    } else if (a.path[n] > b.path[n]) {
         return -1;
     } else {
-        if (n + 1 == a.length) {
+        if (n + 1 == a.path.length) {
+            if (a.replace.tree == null) {
+                return -1;
+            }
+            if (b.replace.tree == null) {
+                return 1;
+            }
             return 0;
         } else {
-            return comparePath(a, b, n + 1)
+            return compareDelta(a, b, n + 1)
         }
     }
 }
@@ -72,7 +78,7 @@ export function applyDelta<V>(tree: Tree<V>, delta: Delta<V>): Tree<V> {
 export function applyDiff<V>(tree: Tree<V>, diff: Diff<V>): Tree<V> {
     const deltas = Array.from(diff)
     deltas.sort((a, b) => {
-        return comparePath(a.path, b.path, 0)
+        return compareDelta(a, b, 0)
     })
     let retval = tree
     for (const delta of deltas) {
