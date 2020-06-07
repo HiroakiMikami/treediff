@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import * as chai from 'chai'
 import { Tree } from '../src/tree'
-import { applyDelta, Delta, applyDiff, TreeWithHole } from '../src/diff'
+import { applyDelta, Delta, applyDiff, InsertTree, DeleteTree, ReplaceValue } from '../src/diff'
 chai.should()
 
-
-const remove = new TreeWithHole<string>(null, null)
+const del = new DeleteTree<string>()
 
 describe('#applyDelta', () => {
     it('remove specified node', () => {
@@ -16,7 +15,7 @@ describe('#applyDelta', () => {
                 { value: "p2", children: [{ value: "leaf", children: [] }] }
             ]
         }
-        applyDelta(tree, new Delta<string>([1, 0], remove)).should.deep.equal(
+        applyDelta(tree, new Delta<string>([1, 0], del)).should.deep.equal(
             {
                 value: "parent",
                 children: [
@@ -25,31 +24,11 @@ describe('#applyDelta', () => {
                 ]
             }
         )
-        applyDelta(tree, new Delta<string>([0], remove)).should.deep.equal(
+        applyDelta(tree, new Delta<string>([0], del)).should.deep.equal(
             {
                 value: "parent",
                 children: [
                     { value: "p2", children: [{ value: "leaf", children: [] }] }
-                ]
-            }
-        )
-    })
-    it("replace tree", () => {
-        const tree: Tree<string> = {
-            value: "parent",
-            children: [
-                { value: "leaf", children: [] },
-                { value: "p2", children: [{ value: "leaf", children: [] }] }
-            ]
-        }
-        applyDelta(tree, new Delta<string>([1, 0],
-            new TreeWithHole({ value: "test", children: [] })
-        )).should.deep.equal(
-            {
-                value: "parent",
-                children: [
-                    { value: "leaf", children: [] },
-                    { value: "p2", children: [{ value: "test", children: [] }] }
                 ]
             }
         )
@@ -63,13 +42,31 @@ describe('#applyDelta', () => {
             ]
         }
         applyDelta(tree, new Delta<string>([1, 0],
-            new TreeWithHole({ value: "test", children: [null] }, [0])
+            new InsertTree([0], { value: "test", children: [null] })
         )).should.deep.equal(
             {
                 value: "parent",
                 children: [
                     { value: "leaf", children: [] },
                     { value: "p2", children: [{ value: "test", children: [{ value: "leaf", children: [] }] }] }
+                ]
+            }
+        )
+    })
+    it("replace a value in tree", () => {
+        const tree: Tree<string> = {
+            value: "parent",
+            children: [
+                { value: "leaf", children: [] },
+                { value: "p2", children: [{ value: "leaf", children: [] }] }
+            ]
+        }
+        applyDelta(tree, new Delta<string>([1, 0], new ReplaceValue("replaced"))).should.deep.equal(
+            {
+                value: "parent",
+                children: [
+                    { value: "leaf", children: [] },
+                    { value: "p2", children: [{ value: "replaced", children: [] }] }
                 ]
             }
         )
@@ -86,9 +83,9 @@ describe('#applyDiff', () => {
             ]
         }
         applyDiff(tree, [
-            new Delta<string>([0], remove),
-            new Delta<string>([1, 0], remove),
-            new Delta<string>([2], new TreeWithHole({ value: "test", children: [null] }, [0]))
+            new Delta<string>([0], del),
+            new Delta<string>([1, 0], del),
+            new Delta<string>([2], new InsertTree([0], { value: "test", children: [null] }))
         ]).should.deep.equal(
             {
                 value: "parent",
@@ -107,8 +104,8 @@ describe('#applyDiff', () => {
             ]
         }
         applyDiff(tree, [
-            new Delta<string>([1], new TreeWithHole({ value: "test1", children: [] }, null)),
-            new Delta<string>([2], new TreeWithHole({ value: "test2", children: [] }, null))
+            new Delta<string>([1], new InsertTree([], { value: "test1", children: [] })),
+            new Delta<string>([2], new InsertTree([], { value: "test2", children: [] }))
         ]).should.deep.equal(
             {
                 value: "parent",
@@ -128,8 +125,8 @@ describe('#applyDiff', () => {
             ]
         }
         applyDiff(tree, [
-            new Delta<string>([0], new TreeWithHole({ value: "test", children: [] }, null)),
-            new Delta<string>([0], new TreeWithHole(null, null)),
+            new Delta<string>([0], new InsertTree([], { value: "test", children: [] })),
+            new Delta<string>([0], del)
         ]).should.deep.equal(
             {
                 value: "parent",

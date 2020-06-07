@@ -1,7 +1,26 @@
 import { Tree } from "./tree";
 
-export class TreeWithHole<V> {
-    constructor(public tree?: Tree<V>, public path?: ReadonlyArray<number>) { }
+export class ReplaceValue<V> {
+    public readonly type = "replace"
+    constructor(public readonly value: V) {}
+    public fill(tree: Tree<V>): Tree<V> {
+        return {
+            value: this.value,
+            children: tree.children
+        }
+    }
+}
+
+export class DeleteTree<V> {
+    public readonly type = "delete"
+    public fill(): Tree<V> {
+        return null
+    }
+}
+
+export class InsertTree<V> {
+    public readonly type = "insert"
+    constructor(public readonly path: ReadonlyArray<number>, public readonly tree: Tree<V>) { }
     public fill(tree: Tree<V>): Tree<V> {
         function findAndReplace<V>(t: Tree<V>, tree: Tree<V>,
                                    path: ReadonlyArray<number>, n: number): Tree<V> {
@@ -15,16 +34,17 @@ export class TreeWithHole<V> {
                 return { value: t.value, children }
             }
         }
-        if (this.path == null) {
+        if (tree == null && this.path.length === 0) {
             return this.tree
-        } else {
-            return findAndReplace(this.tree, tree, this.path, 0)
         }
+        return findAndReplace(this.tree, tree, this.path, 0)
     }
 }
 
+export type Patch<V> = ReplaceValue<V> | DeleteTree<V> | InsertTree<V>
+
 export class Delta<V> {
-    constructor(public path: ReadonlyArray<number>, public replace: TreeWithHole<V>) { }
+    constructor(public readonly path: ReadonlyArray<number>, public readonly patch: Patch<V>) { }
 }
 
 export type Diff<V> = ReadonlyArray<Delta<V>>
@@ -43,11 +63,11 @@ function compareDelta<V>(a: Delta<V>, b: Delta<V>, n: number): number {
         return -1;
     } else {
         if (n + 1 == a.path.length) {
-            if (a.replace.tree == null) {
-                return -1;
+            if (a.patch.type == "delete") {
+                return -1
             }
-            if (b.replace.tree == null) {
-                return 1;
+            if (b.patch.type == "delete") {
+                return 1
             }
             return 0;
         } else {
@@ -60,7 +80,7 @@ export function applyDelta<V>(tree: Tree<V>, delta: Delta<V>): Tree<V> {
     function findAndReplace<V>(t: Tree<V>, delta: Delta<V>, n: number): Tree<V> {
         if (n == delta.path.length) {
             // Replace
-            return delta.replace.fill(t)
+            return delta.patch.fill(t)
         } else {
             const retval = findAndReplace(t.children[delta.path[n]], delta, n + 1)
             const children = Array.from(t.children)
